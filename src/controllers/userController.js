@@ -8,7 +8,7 @@ const getUser = async (req, res) => {
         return res.status(400).json({ message: "Email is required to update the farmer's details." });
     }
     try { 
-        const updatedFarmer = await Farmer.findOneAndUpdate(
+        const updatedFarmer = await User.findOneAndUpdate(
             { email }, // Filter by email
             { $set: updateData }, // Update only the provided fields
             { new: true, runValidators: true } // Return the updated document and validate data

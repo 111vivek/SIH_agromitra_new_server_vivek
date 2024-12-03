@@ -15,6 +15,72 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
     .then(() => console.log("MongoDB connected"))
     .catch(err => console.error("MongoDB connection error:", err));
 
+// vivek commit start
+const feedbackSchema = new mongoose.Schema({
+  email: { type: String, required: true },
+  feedback_desc: { type: String, required: true },
+  feedback_type: { type: Number, required: true }, // 1 for positive, 0 for negative
+  date: { type: Date, default: Date.now }
+});
+
+// Create a Model based on the Schema
+const Feedback = mongoose.model('Feedback', feedbackSchema);
+
+// POST API to Submit Feedback
+app.get('/farmer/feedback', async (req, res) => {
+  const { email, feedback_desc, feedback_type } = req.body;
+
+  try {
+    // Create new feedback record
+    const feedback = new Feedback({
+      email,
+      feedback_desc,
+      feedback_type,
+    });
+
+    // Save to the database
+    await feedback.save();
+
+    res.status(201).json({
+      success: true,
+      msg: 'Your feedback recorded successfully.',
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      success: false,
+      msg: 'Failed to save feedback.',
+    });
+  }
+});
+
+// GET API to Fetch Latest Feedbacks
+app.get('/admin/feedback', async (req, res) => {
+  const top = parseInt(req.query.top) || 10; // Default to 10 if 'top' is not provided
+
+  try {
+    const feedbacks = await Feedback.find()
+      .sort({ date: -1 }) // Sort by latest feedback
+      .limit(top); // Fetch the top 'n' feedbacks
+
+    res.status(200).json({
+      success: true,
+      data: feedbacks,
+      msg: 'Successfully fetched feedback data.',
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      success: false,
+      msg: 'Failed to fetch feedbacks.',
+    });
+  }
+});
+
+
+//vivek commit ends
+
+
 // Routes
 app.use("/api/users", userRoutes);
 

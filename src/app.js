@@ -121,7 +121,7 @@ app.get('/admin/feedback', async (req, res) => {
 app.use("/api/users", userRoutes);
 
 app.get("/", (req, res) => {
-    res.send("Welcome to the Express.js server!");
+    res.send("Welcome to the Express");
 });
 //start
 // 

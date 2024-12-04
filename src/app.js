@@ -7,6 +7,12 @@ const User = require("./models/farmerSchema");
 
 const app = express();
 
+function isEmail(email) {
+  var emailFormat = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
+  if (email !== '' && email.match(emailFormat)) { return true; }
+  
+  return false;
+}
 // Middleware
 app.use(bodyParser.json());
 
@@ -19,19 +25,49 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
 const feedbackSchema = new mongoose.Schema({
   email: { type: String, required: true },
   feedback_desc: { type: String, required: true },
-  feedback_type: { type: Number, required: true }, // 1 for positive, 0 for negative
-  date: { type: Date, default: Date.now }
-});
+  feedback_type: { type: Number, required: true, validator:()=>{
+    if(this.feedback_type != 0 || this.feedback_type != 1)
+      return "invalid feedback type"
+  } },
+},{timestamps:true});
 
 // Create a Model based on the Schema
 const Feedback = mongoose.model('Feedback', feedbackSchema);
 
 // POST API to Submit Feedback
-app.get('/farmer/feedback', async (req, res) => {
+app.post('/farmer/feedback', async (req, res) => {
   const { email, feedback_desc, feedback_type } = req.body;
 
   try {
-    // Create new feedback record
+    console.log(feedback_desc.length);
+    if(!email || !feedback_desc){
+      return res.json({
+        success:false,
+        msg:"All fields are required"
+      });
+    }
+
+    if(!isEmail(email)){
+      return res.json({
+        success:false,
+        msg:"inavalid email address"
+      });
+    }
+
+    if(feedback_desc.length < 20){
+      return res.json({
+        success:false,
+        msg:"please elaborate your feedback"
+      });
+    }
+
+    if(feedback_type > 1){
+      return res.json({
+        success:false,
+        msg:"inavalid feedback type"
+      });
+    }
+
     const feedback = new Feedback({
       email,
       feedback_desc,
